@@ -11,7 +11,11 @@ I have a blog post explaining the writing of the code for this project: (How to:
 Simply run using `cargo run --release`.
 
 
-
+Objective
+// Basic analysis to quickly note which tokens are worth looking deeper
+- RSI > 70 
+- RSI < 30
+- MACD cross line under 0 (supported with 200 day ema for trend direction, if direction is sidelines ignore)
 
 // CLI
 
@@ -43,33 +47,7 @@ Example config
     ],
     "strategy": {
         "stop_loss": "0.05",
-        "take_profit": "0.07",
-        "sentiments": [
-            {
-                // indicates range
-                "indicator": "rsi",
-                "sentiment": "sell", // "sell" | "buy" | "neutral"
-                "params": [],
-                "greater_than": 70
-            },
-            {
-                // indicates range
-                "indicator": "rsi",
-                "sentiment": "sell",
-                "params": [],
-                "less_than": 30
-            },
-            {
-                // indicates range
-                "indicator": "ema",
-                "sentiment": "sell",
-                "params": [20],
-                "greater_than": {
-                    "indicator": "ema",
-                    "params": [50]
-                }
-            }
-        ]
+        "take_profit": "0.07"
     },
 }
 

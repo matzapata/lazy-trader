@@ -1,3 +1,5 @@
+pub struct BoilingBandsIndicator {}
+
 #[derive(PartialEq, Debug)]
 pub struct BollingerBands {
     pub upper_bound: Vec<f64>,
@@ -43,7 +45,6 @@ pub fn bollinger_bands(
         lower_bound,
     })
 }
-
 
 // #[test]
 // fn test_bollinger_bands() {

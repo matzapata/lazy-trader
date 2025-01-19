@@ -525,6 +525,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "lt"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "clap",
+ "console",
+ "dialoguer",
+ "indicatif",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
 name = "matches"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -908,22 +924,6 @@ checksum = "c970269d99b64e60ec3bd6ad27270092a5394c4e309314b18ae3fe575695fbe8"
 dependencies = [
  "libc",
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "st"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "clap",
- "console",
- "dialoguer",
- "indicatif",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
 ]
 
 [[package]]

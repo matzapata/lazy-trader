@@ -33,7 +33,6 @@ pub fn moving_average_convergence_divergence(
     Some(MACD { macd, signal })
 }
 
-
 // #[test]
 // fn test_moving_average_convergence_divergence() {
 //     let data_set = vec![

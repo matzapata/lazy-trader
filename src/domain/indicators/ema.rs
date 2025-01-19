@@ -1,3 +1,6 @@
+
+
+
 pub fn exponential_moving_average(data_set: &Vec<f64>, window_size: usize) -> Option<Vec<f64>> {
     if window_size > data_set.len() {
         return None;
