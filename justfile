@@ -5,5 +5,5 @@ format:
 lint:
     cargo clippy
 
-run-cli:
-    cargo run --bin cli
+run-cli +args:
+    cargo run --bin cli {{args}}
