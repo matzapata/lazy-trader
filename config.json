@@ -1,0 +1,35 @@
+{
+    "tokens": [
+        {
+            "key": "BTCUSDT",
+            "url": "https://jup.ag/swap/USDC-SOL"
+        }
+    ],
+    "strategy": {
+        "stop_loss": "0.05",
+        "take_profit": "0.07"
+    },
+    "signals": [
+        {
+            "indicator": "rsi",
+            "sentiment": "sell",
+            "params": [],
+            "greater_than": 70
+        },
+        {
+            "indicator": "rsi",
+            "sentiment": "sell",
+            "params": [],
+            "less_than": 30
+        },
+        {
+            "indicator": "ema",
+            "sentiment": "buy",
+            "params": [20],
+            "greater_than": {
+                "indicator": "ema",
+                "params": [50]
+            }
+        }
+    ]
+}
