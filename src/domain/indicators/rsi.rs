@@ -11,7 +11,30 @@ impl RsiIndicator {
     }
 }
 
+trait TAsRsiIndicator {
+    fn as_rsi_indicator(&self) -> IndicatorResult;
+}
+
+impl TAsRsiIndicator for f64 {
+    fn as_rsi_indicator(&self) -> IndicatorResult {
+        IndicatorResult {
+            value: vec![*self],
+            sentiment: if *self > 70.0 {
+                IndicatorSentiment::Bullish
+            } else if *self < 30.0 {
+                IndicatorSentiment::Bearish
+            } else {
+                IndicatorSentiment::Neutral
+            },
+        }
+    }
+}
+
 impl TIndicator for RsiIndicator {
+    fn name(&self) -> &'static str {
+        "RSI"
+    }
+
     fn info(&self) -> &'static str {
         "RSI: Relative Strength Index\n\
         Measures the speed and change of price movements.\n\
@@ -19,9 +42,13 @@ impl TIndicator for RsiIndicator {
         Used to identify overbought or oversold conditions."
     }
 
-    fn compute(&self, data: &Vec<MarketKlineData>) -> Vec<IndicatorResult> {
-        let price_data: Vec<f64> = data.iter().rev().take(100).map(|f| f.close).collect();
-        let mut result: Vec<IndicatorResult> = Vec::new();
+    fn compute(&self, data: &Vec<MarketKlineData>) -> Option<Vec<IndicatorResult>> {
+        let mut rsi: Vec<f64> = Vec::new();
+        let price_data = data.iter().rev().map(|f| f.close).collect::<Vec<f64>>();
+
+        if self.window_size > price_data.len() {
+            return None;
+        }
 
         let mut previous_average_gain;
         let mut previous_average_loss;
@@ -49,7 +76,7 @@ impl TIndicator for RsiIndicator {
         previous_average_gain = current_average_gain;
         previous_average_loss = current_average_loss;
 
-        result.push(to_indicator_result(rsi_a));
+        rsi.push(rsi_a);
 
         // RSI Step two
         for i in (self.window_size + 1)..price_data.len() {
@@ -70,60 +97,56 @@ impl TIndicator for RsiIndicator {
             previous_average_gain = current_average_gain;
             previous_average_loss = current_average_loss;
 
-            let rsi = 100.0 - 100.0 / (1.0 + current_average_gain / current_average_loss);
-            result.push(to_indicator_result(rsi));
+            rsi.push(100.0 - 100.0 / (1.0 + current_average_gain / current_average_loss));
         }
 
-        result
+        Some(rsi.iter().map(|f| f.as_rsi_indicator()).collect())
     }
 }
 
-fn to_indicator_result(data: f64) -> IndicatorResult {
-    IndicatorResult {
-        value: vec![data],
-        sentiment: if data > 70.0 {
-            IndicatorSentiment::Bullish
-        } else if data < 30.0 {
-            IndicatorSentiment::Bearish
-        } else {
-            IndicatorSentiment::Neutral
-        },
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_relative_strength_index() {
+        let rsi = RsiIndicator::new(8);
+        let data = kline_data_from_close_price(&[
+            5.0, 4.5, 4.0, 3.5, 3.5, 3.0, 2.0, 1.0, 1.5, 2.0, 4.0, 6.0, 5.0,
+        ]);
+
+        let result = rsi.compute(&data).unwrap();
+
+        assert_eq!(5, result.len());
+        assert_eq!(
+            vec![
+                56.852791878172596.as_rsi_indicator(),
+                56.852791878172596.as_rsi_indicator(),
+                59.17295654731064.as_rsi_indicator(),
+                61.256328819550575.as_rsi_indicator(),
+                63.16578540011347.as_rsi_indicator()
+            ],
+            result
+        );
+    }
+
+    fn kline_data_from_close_price(close_prices: &[f64]) -> Vec<MarketKlineData> {
+        close_prices
+            .iter()
+            .map(|&close| MarketKlineData {
+                close,
+                open: 0.0,
+                high: 0.0,
+                low: 0.0,
+                volume: 0.0,
+                close_time: 0,
+                open_time: 0,
+                quote_asset_volume: 0.0,
+                number_of_trades: 0,
+                take_buy_base_asset_volume: 0.0,
+                take_buy_quote_asset_volume: 0.0,
+                ignore: 0.0,
+            })
+            .collect()
     }
 }
-
-// #[test]
-// fn test_relative_strength_index() {
-//     let price_data = vec![
-//         5.0, 6.0, 4.0, 2.0, 1.5, 1.0, 2.0, 3.0, 3.5, 3.5, 4.0, 4.5, 5.0,
-//     ];
-
-//     let result = relative_strength_index(&price_data, 14);
-//     assert_eq!(None, result);
-
-//     let result = relative_strength_index(&price_data, 8).unwrap();
-
-//     assert_eq!(5, result.len());
-//     assert_eq!(
-//         vec![
-//             56.852791878172596,
-//             56.852791878172596,
-//             59.17295654731064,
-//             61.256328819550575,
-//             63.16578540011347
-//         ],
-//         result
-//     );
-
-//     let price_data = vec![
-//         44.34, 44.09, 44.15, 43.61, 44.33, 44.83, 45.10, 45.42, 45.84, 46.08, 45.89, 46.03,
-//         45.61, 46.28, 46.28, 46.00, 46.03,
-//     ];
-
-//     let result = relative_strength_index(&price_data, 14).unwrap();
-
-//     assert_eq!(3, result.len());
-//     assert_eq!(
-//         vec![70.53539393736207, 66.436571546019, 66.66146763681454],
-//         result
-//     );
-// }

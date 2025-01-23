@@ -1,6 +1,6 @@
 use super::market::Market;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct MarketKlineData {
     pub open_time: i64,
     pub open: f64,

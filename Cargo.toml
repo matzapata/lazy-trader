@@ -18,3 +18,5 @@ thiserror = "1.0"
 dialoguer = { version = "0.11.0", features = ["fuzzy-select"] }
 indicatif = "0.17.7"
 console = "0.15.7"
+prettytable-rs = "^0.10"
+colored = "3.0.0"
