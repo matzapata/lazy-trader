@@ -2,14 +2,14 @@ use colored::*;
 
 use crate::domain::market::kline_data::MarketKlineData;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum IndicatorSentiment {
     Bullish,
     Bearish,
     Neutral,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct IndicatorResult {
     pub value: Vec<f64>,
     pub sentiment: IndicatorSentiment,
@@ -34,5 +34,6 @@ impl std::fmt::Display for IndicatorResult {
 pub trait TIndicator: Send + Sync {
     fn name(&self) -> &'static str;
     fn info(&self) -> &'static str;
-    fn compute(&self, data: &Vec<MarketKlineData>) -> Option<Vec<IndicatorResult>>;
+    fn compute(&mut self, data: &Vec<MarketKlineData>) -> Result<(), Box<dyn std::error::Error>>;
+    fn get(&self, timestamp: i64) -> IndicatorResult;
 }

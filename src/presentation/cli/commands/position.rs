@@ -7,7 +7,7 @@ use super::error::CliError;
 use crate::cli::RunCommand;
 
 #[derive(Args, Debug)]
-pub struct Position {
+pub struct PositionCmd {
     variant: String, // Short or long
     market: String,
     stop_loss: Option<f64>,
@@ -16,7 +16,7 @@ pub struct Position {
 }
 
 #[async_trait]
-impl RunCommand for Position {
+impl RunCommand for PositionCmd {
     async fn run(self) -> Result<(), CliError> {
         // stop loss from param of config
         // risk from param of config

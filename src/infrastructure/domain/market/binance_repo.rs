@@ -1,6 +1,6 @@
 use crate::domain::market::{
     kline_data::{MarketKlineData, TMarketKlineDataRepo},
-    market::Market,
+    market::{Interval, Market},
 };
 use reqwest::{Client, StatusCode};
 use serde::{de, Deserialize, Deserializer, Serialize};
@@ -20,20 +20,24 @@ impl BinanceMarketKlineDataRepo {
 #[async_trait::async_trait]
 impl TMarketKlineDataRepo for BinanceMarketKlineDataRepo {
     async fn get_klines(&self, market: &Market) -> Option<Vec<MarketKlineData>> {
+        let interval_key = match market.interval {
+            Interval::D1 => "1d",
+            Interval::H1 => "1h",
+        };
+
         let req_url = format!(
             "{}/klines?symbol={}&interval={}&limit={}",
-            BINANCE_URL, market.id, market.interval, market.limit
+            BINANCE_URL, market.id, interval_key, market.limit
         );
+        println!("req_url: {}", req_url);
 
         let result = self.client.get(&req_url).send().await.unwrap();
 
         let data: Vec<MarketKlineData> = match result.status() {
             StatusCode::OK => {
-                serde_json::from_value::<Vec<KlineDataDto>>(result.json().await.unwrap())
-                    .unwrap()
-                    .iter()
-                    .map(|x: &KlineDataDto| MarketKlineData::from(x.clone()))
-                    .collect()
+                let json_value = result.json().await.unwrap();
+                let kline_dtos: Vec<KlineDataDto> = serde_json::from_value(json_value).unwrap();
+                kline_dtos.into_iter().map(MarketKlineData::from).collect()
             }
             _ => {
                 println!("StatusCode: {}", result.status());
