@@ -1,5 +1,3 @@
-use colored::*;
-
 use crate::domain::market::kline_data::MarketKlineData;
 
 #[derive(Debug, PartialEq, Clone)]
