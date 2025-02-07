@@ -1,30 +1,33 @@
+use super::error::CliError;
+use crate::cli::RunCommand;
 use async_trait::async_trait;
-use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
+use chrono::DateTime;
 use clap::Args;
-use clap::{Parser, ValueEnum};
-use lt::domain::indicators::indicator::TIndicator;
-use lt::domain::market::kline_data;
+use clap::ValueEnum;
 use lt::domain::{
     indicators::indicator::IndicatorSentiment,
     market::market::{Interval, Market},
 };
+use prettytable::format;
 use prettytable::{color, Attr, Cell, Row, Table};
-
-use super::error::CliError;
-use crate::cli::RunCommand;
+use terminal_size::{terminal_size, Width};
 
 #[derive(Args, Debug)]
 pub struct SentimentCmd {
     market: Option<String>,
 
-    #[arg(long, default_value_t = 100)]
+    #[arg(long, default_value_t = 200)]
     limit: u32,
 
     #[arg(long)]
     interval: SentimentCmdInterval,
 
     #[arg(long, default_value_t = false)]
-    show_all: bool,
+    neutral: bool,
+
+    #[arg(long, default_value_t = false)]
+    info: bool,
+
 }
 
 #[derive(Debug, Clone, ValueEnum)]
@@ -54,8 +57,9 @@ impl RunCommand for SentimentCmd {
         let config_service = lt::application::config::ConfigService::new(config_repo);
         let mut indicators: Vec<Box<dyn lt::domain::indicators::indicator::TIndicator>> = vec![
             Box::new(lt::domain::indicators::rsi::RsiIndicator::new(14)),
-            Box::new(lt::domain::indicators::sma::SmaIndicator::new(14)),
-            Box::new(lt::domain::indicators::ema::EmaIndicator::new(14)),
+            Box::new(lt::domain::indicators::ema::EmaIndicator::new(20, 50)),
+            Box::new(lt::domain::indicators::macd::MacdIndicator::new(12, 26, 9)),
+            Box::new(lt::domain::indicators::bb::BoilingBandsIndicator::new(20, 2.0, 50)),
         ];
 
         // select markets to analyze
@@ -92,30 +96,29 @@ impl RunCommand for SentimentCmd {
 
             let mut table = Table::new();
 
-            // Build the header row
-            let header: Row = Row::new(
-                std::iter::once(Cell::new("Date"))
-                    .chain(
-                        indicators
-                            .iter()
-                            .map(|indicator| Cell::new(&indicator.name())),
-                    )
-                    .collect(),
-            );
-            table.add_row(header);
+            let format = format::FormatBuilder::new()
+                .column_separator('|')
+                .borders('|')
+                .separators(
+                    &[format::LinePosition::Top, format::LinePosition::Bottom],
+                    format::LineSeparator::new('-', '+', '+', '+'),
+                )
+                .padding(1, 1)
+                .build();
+            table.set_format(format);
 
-            let mut current_time = end_date;
-            while current_time > start_date {
+            let mut current_time = start_date;
+            while current_time < end_date {
                 let datetime = DateTime::from_timestamp(current_time / 1000, 0).unwrap();
-                let formatted_date = datetime.format("%Y-%m-%d %H:%M").to_string();
+                let formatted_date = datetime.format("%d-%m-%Y %Hhs").to_string();
 
                 // if show-all is false, skip indicators that are not bullish nor bearish
-                if !self.show_all {
+                if !self.info {
                     // skip row if no indicator is bullish n
                     if !indicators.iter().any(|indicator| {
                         indicator.get(current_time).sentiment != IndicatorSentiment::Neutral
                     }) {
-                        current_time -= interval;
+                        current_time += interval;
                         continue;
                     }
                 }
@@ -136,12 +139,43 @@ impl RunCommand for SentimentCmd {
 
                 table.add_row(Row::new(cells));
 
-                current_time -= interval;
+                current_time += interval;
             }
 
+            // Build the header row
+            let header: Row = Row::new(
+                std::iter::once(Cell::new("Date"))
+                    .chain(
+                        indicators
+                            .iter()
+                            .map(|indicator| Cell::new(&indicator.name())),
+                    )
+                    .collect(),
+            );
+            table.add_row(header);
+
+            // Print the table
             table.printstd();
+
+            // print descriptions
+            if self.info {
+                println!();
+                print_divider();
+                for indicator in &indicators {
+                    println!("{}", indicator.info());
+                    print_divider();
+                }
+            }
         }
 
         Ok(())
     }
+}
+
+fn print_divider() {
+    let width = match terminal_size() {
+        Some((Width(w), _)) => w as usize,
+        None => 80, // Default to 80 if size can't be determined
+    };
+    println!("{}", "-".repeat(width));
 }

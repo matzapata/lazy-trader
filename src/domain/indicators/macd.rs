@@ -1,7 +1,98 @@
-#[derive(PartialEq, Debug)]
-pub struct MACD {
-    pub macd: Vec<f64>,
-    pub signal: Vec<f64>,
+use super::{
+    ema::ema,
+    indicator::{IndicatorResult, IndicatorSentiment, TIndicator},
+};
+use crate::domain::market::kline_data::MarketKlineData;
+use std::collections::HashMap;
+
+pub struct MacdIndicator {
+    fast_length: usize,
+    slow_length: usize,
+    signal_length: usize,
+    values: HashMap<i64, IndicatorResult>,
+}
+
+impl MacdIndicator {
+    pub fn new(fast_length: usize, slow_length: usize, signal_length: usize) -> Self {
+        MacdIndicator {
+            fast_length,
+            slow_length,
+            signal_length,
+            values: HashMap::new(),
+        }
+    }
+}
+
+impl TIndicator for MacdIndicator {
+    fn name(&self) -> &'static str {
+        "MACD"
+    }
+
+    fn info(&self) -> &'static str {
+        "
+  MACD: Moving Average Convergence/Divergence
+
+  Bullish Signals:        
+    - MACD crosses above the Signal Line → Buy signal (momentum is increasing).
+    - MACD and Signal Line both above the zero line → Strong bullish trend.
+    - Rising Histogram → Bullish momentum is strengthening.
+  Bearish Signals:
+    - MACD crosses below the Signal Line → Sell signal (momentum is decreasing).
+    - MACD and Signal Line both below the zero line → Strong bearish trend.
+    - Falling Histogram → Bearish momentum is strengthening.
+        "
+    }
+
+    fn compute(&mut self, data: &Vec<MarketKlineData>) -> Result<(), Box<dyn std::error::Error>> {
+        let price_data: Vec<f64> = data.iter().map(|f| f.close).collect();
+        if self.slow_length > price_data.len() {
+            return Err("Invalid window size".into());
+        }
+
+        let (macd, signal) = moving_average_convergence_divergence(
+            &price_data,
+            self.fast_length,
+            self.slow_length,
+            self.signal_length,
+        );
+
+        let mut macd_above = macd[0] > signal[0];
+        for i in 0..price_data.len() {
+            let timestamp = data[i].close_time;
+
+            let sentiment = if macd[i] < signal[i] && macd_above {
+                // we're going down
+                macd_above = false;
+                IndicatorSentiment::Bearish
+            } else if macd[i] > signal[i] && !macd_above {
+                // we're going up
+                macd_above = true;
+                IndicatorSentiment::Bullish
+            } else {
+                IndicatorSentiment::Neutral
+            };
+
+            self.values.insert(
+                timestamp,
+                IndicatorResult {
+                    value: vec![macd[i], signal[i]],
+                    sentiment: sentiment,
+                },
+            );
+        }
+
+        Ok(())
+    }
+
+    fn get(&self, timestamp: i64) -> IndicatorResult {
+        match self.values.get(&timestamp) {
+            Some(v) => v.clone(),
+            None => IndicatorResult {
+                value: vec![0.0],
+                sentiment: IndicatorSentiment::Neutral,
+            },
+        }
+    }
 }
 
 pub fn moving_average_convergence_divergence(
@@ -9,14 +100,9 @@ pub fn moving_average_convergence_divergence(
     fast_length: usize,
     slow_length: usize,
     signal_length: usize,
-) -> Option<MACD> {
-    let fast_ema_result = exponential_moving_average(data_set, fast_length);
-    let slow_ema_result = exponential_moving_average(data_set, slow_length);
-
-    let (fast_ema, slow_ema) = match (fast_ema_result, slow_ema_result) {
-        (Some(fast_ema), Some(slow_ema)) => (fast_ema, slow_ema),
-        _ => return None,
-    };
+) -> (Vec<f64>, Vec<f64>) {
+    let fast_ema = ema(fast_length, data_set);
+    let slow_ema = ema(slow_length, data_set);
 
     let mut macd: Vec<f64> = Vec::new();
     for i in 0..slow_ema.len() {
@@ -24,13 +110,9 @@ pub fn moving_average_convergence_divergence(
         macd.push(macd_val);
     }
 
-    let signal_result = exponential_moving_average(&macd, signal_length);
-    let signal = match signal_result {
-        Some(signal) => signal,
-        _ => return None,
-    };
+    let signal = ema(signal_length, &macd);
 
-    Some(MACD { macd, signal })
+    (macd, signal)
 }
 
 // #[test]

@@ -1,3 +1,6 @@
+
+// calculate stop loss, take profit, and entry, expected profit, expected loss, etc
+
 use crate::domain::market::{
     kline_data::{MarketKlineData, TMarketKlineDataRepo},
     market::Market,

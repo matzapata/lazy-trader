@@ -1,7 +1,5 @@
 use crate::domain::config::{Config, TConfigRepository};
-use std::{
-    path::{Path, PathBuf},
-};
+use std::path::PathBuf;
 
 pub struct InmemoryConfigRepository {
     root: PathBuf,

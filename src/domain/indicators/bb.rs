@@ -1,26 +1,90 @@
-pub struct BoilingBandsIndicator {}
+use std::collections::HashMap;
+use crate::domain::market::kline_data::MarketKlineData;
+use super::{indicator::{IndicatorResult, IndicatorSentiment, TIndicator}, sma::sma};
 
-#[derive(PartialEq, Debug)]
-pub struct BollingerBands {
-    pub upper_bound: Vec<f64>,
-    pub middle_bound: Vec<f64>,
-    pub lower_bound: Vec<f64>,
+pub struct BoilingBandsIndicator {
+    window_size: usize,
+    multiplier: f64,
+    slow_length: usize,
+    values: HashMap<i64, IndicatorResult>,
 }
 
-pub fn bollinger_bands(
+impl BoilingBandsIndicator {
+    pub fn new(window_size: usize, multiplier: f64, slow_length: usize) -> Self {
+        BoilingBandsIndicator {
+            window_size,
+            multiplier,
+            slow_length,
+            values: HashMap::new(),
+        }
+    }
+}
+
+impl TIndicator for BoilingBandsIndicator {
+   fn name(&self) -> &'static str {
+        "BollingerBands"
+    }
+
+    fn info(&self) -> &'static str {
+        "
+  BollingerBands: Bollinger Bands
+
+  Bullish Signals:        
+    - MACD crosses above the Signal Line → Buy signal (momentum is increasing).
+    - MACD and Signal Line both above the zero line → Strong bullish trend.
+    - Rising Histogram → Bullish momentum is strengthening.
+  Bearish Signals:
+    - MACD crosses below the Signal Line → Sell signal (momentum is decreasing).
+    - MACD and Signal Line both below the zero line → Strong bearish trend.
+    - Falling Histogram → Bearish momentum is strengthening.
+        "
+    }
+
+    fn compute(&mut self, data: &Vec<MarketKlineData>) -> Result<(), Box<dyn std::error::Error>> {
+        let price_data: Vec<f64> = data.iter().map(|f| f.close).collect();
+        if self.slow_length > price_data.len() {
+            return Err("Invalid window size".into());
+        }
+
+        let res = bb(
+            &price_data,
+            self.window_size,
+            self.multiplier,
+        ).unwrap();
+
+        for i in 0..res.len() {
+            let timestamp = data[i].close_time;
+            self.values.insert(
+                timestamp,
+                IndicatorResult {
+                    value: vec![res[i][0], res[i][1], res[i][2]],
+                    sentiment: IndicatorSentiment::Neutral,
+                },
+            );
+        }
+
+        Ok(())
+    }
+
+    fn get(&self, timestamp: i64) -> IndicatorResult {
+        match self.values.get(&timestamp) {
+            Some(v) => v.clone(),
+            None => IndicatorResult {
+                value: vec![0.0],
+                sentiment: IndicatorSentiment::Neutral,
+            },
+        }
+    }
+}
+
+pub fn bb(
     data_set: &Vec<f64>,
     window_size: usize,
     multiplier: f64,
-) -> Option<BollingerBands> {
-    let middle_bound_result = simple_moving_average(data_set, window_size);
+) -> Option<Vec<[f64; 3]>> {
+    let middle_bound = sma(window_size, data_set).unwrap();
 
-    let middle_bound = match middle_bound_result {
-        Some(middle_bound) => middle_bound,
-        _ => return None,
-    };
-
-    let mut upper_bound: Vec<f64> = Vec::new();
-    let mut lower_bound: Vec<f64> = Vec::new();
+    let mut res: Vec<[f64; 3]> = Vec::new();
 
     for i in 0..middle_bound.len() {
         let slice = &data_set[i..window_size + i];
@@ -35,15 +99,15 @@ pub fn bollinger_bands(
 
         let standard_deviation = variance.sqrt();
 
-        upper_bound.push(middle_bound[i] + multiplier * standard_deviation);
-        lower_bound.push(middle_bound[i] - multiplier * standard_deviation);
+
+        res.push([
+            middle_bound[i] + multiplier * standard_deviation,
+            middle_bound[i],
+            middle_bound[i] - multiplier * standard_deviation,
+        ]);
     }
 
-    Some(BollingerBands {
-        upper_bound,
-        middle_bound,
-        lower_bound,
-    })
+    Some(res)
 }
 
 // #[test]

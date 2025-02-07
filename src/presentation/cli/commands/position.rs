@@ -1,8 +1,5 @@
 use async_trait::async_trait;
 use clap::Args;
-use console::style;
-use lt::domain::market::market::Market;
-
 use super::error::CliError;
 use crate::cli::RunCommand;
 

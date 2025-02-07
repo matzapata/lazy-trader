@@ -1,13 +1,24 @@
 use super::indicator::{IndicatorResult, IndicatorSentiment, TIndicator};
 use crate::domain::market::kline_data::MarketKlineData;
+use std::collections::HashMap;
 
 pub struct SmaIndicator {
-    window_size: usize,
+    fast_length: usize,
+    slow_length: usize,
+    values: HashMap<i64, IndicatorResult>,
 }
 
 impl SmaIndicator {
-    pub fn new(window_size: usize) -> Self {
-        SmaIndicator { window_size }
+    pub fn new(fast_length: usize, slow_length: usize) -> Self {
+        if fast_length > slow_length {
+            panic!("Fast length should be less than slow length");
+        }
+
+        SmaIndicator {
+            fast_length,
+            slow_length,
+            values: HashMap::new(),
+        }
     }
 }
 
@@ -17,46 +28,82 @@ impl TIndicator for SmaIndicator {
     }
 
     fn info(&self) -> &'static str {
-        "SMA: Simple Moving Average"
+"
+  SMA: Simple Moving Average
+  
+  Bullish Signals:
+    - Price crosses above the EMA → Uptrend signal.
+    - Short-term EMA (e.g., 20 EMA) crosses above a longer-term EMA (e.g., 50 EMA) → Bullish momentum.
+    - EMA is sloping upward and price remains above it → Strong bullish trend.
+
+  Bearish Signals:
+    - Price crosses below the EMA → Downtrend signal.
+    - Short-term EMA crosses below a longer-term EMA → Bearish momentum.
+    - EMA is sloping downward and price remains below it → Strong bearish trend.
+"
     }
 
     fn compute(&mut self, data: &Vec<MarketKlineData>) -> Result<(), Box<dyn std::error::Error>> {
-        // let close_price: Vec<f64> = data.iter().rev().map(|f| f.close).collect();
+        let price_data: Vec<f64> = data.iter().map(|f| f.close).collect();
+        if self.slow_length > price_data.len() {
+            return Err("Invalid window size".into());
+        }
 
-        // if self.window_size > close_price.len() {
-        //     return None;
-        // }
+        let slow_ema = sma(self.slow_length, &price_data).unwrap();
+        let fast_ema = sma(self.fast_length, &price_data).unwrap();
 
-        // let mut window_start = 0;
-        // let mut result: Vec<IndicatorResult> = Vec::new();
-        // while window_start + self.window_size <= close_price.len() {
-        //     let window_end = window_start + self.window_size;
-        //     let data_slice = &close_price[window_start..window_end];
-        //     let sum: f64 = data_slice.iter().sum();
-        //     let average = sum / self.window_size as f64;
+        for i in 0..price_data.len() {
+            let timestamp = data[i].close_time;
+            let sentiment = if i < self.slow_length || fast_ema[i] == slow_ema[i] {
+                IndicatorSentiment::Neutral
+            } else if fast_ema[i] > slow_ema[i] {
+                IndicatorSentiment::Bullish
+            } else {
+                IndicatorSentiment::Bearish
+            };
 
-        //     let timestamp = data.iter().rev().nth(window_start + self.window_size - 1).unwrap().close_time;
-
-        //     result.push(IndicatorResult {
-        //         sentiment: IndicatorSentiment::Neutral,
-        //         value: vec![average],
-        //         timestamp
-        //     });
-
-        //     window_start += 1;
-        // }
-
-        // Some(result)
+            self.values.insert(
+                timestamp,
+                IndicatorResult {
+                    value: vec![fast_ema[i], slow_ema[i]],
+                    sentiment,
+                },
+            );
+        }
 
         Ok(())
     }
 
     fn get(&self, timestamp: i64) -> IndicatorResult {
-        IndicatorResult {
-            sentiment: IndicatorSentiment::Neutral,
-            value: vec![0.0],
+        match self.values.get(&timestamp) {
+            Some(v) => v.clone(),
+            None => IndicatorResult {
+                value: vec![0.0],
+                sentiment: IndicatorSentiment::Neutral,
+            },
         }
     }
+}
+
+pub fn sma(window_size: usize, data: &Vec<f64>) -> Option<Vec<f64>> {
+    if window_size > data.len() {
+        return None;
+    }
+
+    let mut window_start = 0;
+    let mut result: Vec<f64> = Vec::new();
+    while window_start + window_size <= data.len() {
+        let window_end = window_start + window_size;
+        let data_slice = &data[window_start..window_end];
+        let sum: f64 = data_slice.iter().sum();
+        let average = sum / window_size as f64;
+
+        result.push(average);
+
+        window_start += 1;
+    }
+
+    Some(result)
 }
 
 #[cfg(test)]

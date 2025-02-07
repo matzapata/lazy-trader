@@ -1,3 +1,4 @@
+
 # Technical indicators example implementations
 
 This project contains examples on how to implement certain technical indicator formulas in Rust code. The indicators are: Simple Moving Average (SMA), Exponential Moving Average (EMA), Moving Average Convergence Divergence (MACD), Bollinger Bands (BOLL), and Relative Strength Index (RSI).
