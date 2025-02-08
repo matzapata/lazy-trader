@@ -19,4 +19,5 @@ pub struct MarketKlineData {
 #[async_trait::async_trait]
 pub trait TMarketKlineDataRepo {
     async fn get_klines(&self, market: &Market) -> Option<Vec<MarketKlineData>>;
+    async fn get_price(&self, market: &Market) -> Result<f64, Box<dyn std::error::Error>>;
 }

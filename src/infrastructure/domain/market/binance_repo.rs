@@ -29,8 +29,6 @@ impl TMarketKlineDataRepo for BinanceMarketKlineDataRepo {
             "{}/klines?symbol={}&interval={}&limit={}",
             BINANCE_URL, market.id, interval_key, market.limit
         );
-        println!("req_url: {}", req_url);
-
         let result = self.client.get(&req_url).send().await.unwrap();
 
         let data: Vec<MarketKlineData> = match result.status() {
@@ -47,6 +45,10 @@ impl TMarketKlineDataRepo for BinanceMarketKlineDataRepo {
         };
 
         Some(data)
+    }
+
+    async fn get_price(&self, _market: &Market) -> Result<f64, Box<dyn std::error::Error>> {
+        Ok(1.0)
     }
 }
 

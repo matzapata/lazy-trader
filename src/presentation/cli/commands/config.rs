@@ -53,7 +53,7 @@ impl RunCommand for ConfigCmd {
                         .collect();
                     config_service.save(&config).await?;
                     println!("{} {}", style("Removed market").red(), token);
-                }
+                },
                 _ => println!("unknown command"),
             },
             None => println!("{:?}", &config),

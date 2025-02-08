@@ -22,22 +22,21 @@ impl BoilingBandsIndicator {
 
 impl TIndicator for BoilingBandsIndicator {
    fn name(&self) -> &'static str {
-        "BollingerBands"
+        "BB"
     }
 
     fn info(&self) -> &'static str {
-        "
-  BollingerBands: Bollinger Bands
+"BB: Bollinger Bands
 
-  Bullish Signals:        
-    - MACD crosses above the Signal Line → Buy signal (momentum is increasing).
-    - MACD and Signal Line both above the zero line → Strong bullish trend.
-    - Rising Histogram → Bullish momentum is strengthening.
+  Bullish Signals:
+    - Price closes above the upper band → Strong bullish momentum, possible continuation.
+    - Price crosses above the middle band (SMA) → Bullish reversal signal.
+    - Bands expand while price stays near the upper band → Trend continuation with increasing volatility.
+
   Bearish Signals:
-    - MACD crosses below the Signal Line → Sell signal (momentum is decreasing).
-    - MACD and Signal Line both below the zero line → Strong bearish trend.
-    - Falling Histogram → Bearish momentum is strengthening.
-        "
+    - Price closes below the lower band → Strong bearish momentum, possible continuation.
+    - Price crosses below the middle band (SMA) → Bearish reversal signal.
+    - Bands expand while price stays near the lower band → Trend continuation with increasing volatility."
     }
 
     fn compute(&mut self, data: &Vec<MarketKlineData>) -> Result<(), Box<dyn std::error::Error>> {
@@ -53,12 +52,19 @@ impl TIndicator for BoilingBandsIndicator {
         ).unwrap();
 
         for i in 0..res.len() {
-            let timestamp = data[i].close_time;
+            let timestamp = data[i + self.window_size  - 1].close_time;
+            let price = data[i + self.window_size - 1].close;
             self.values.insert(
                 timestamp,
                 IndicatorResult {
                     value: vec![res[i][0], res[i][1], res[i][2]],
-                    sentiment: IndicatorSentiment::Neutral,
+                    sentiment: if price > res[i][2] {
+                        IndicatorSentiment::Bullish
+                    } else if price < res[i][0] {
+                        IndicatorSentiment::Bearish
+                    } else {
+                        IndicatorSentiment::Neutral
+                    },
                 },
             );
         }
@@ -81,7 +87,7 @@ pub fn bb(
     data_set: &Vec<f64>,
     window_size: usize,
     multiplier: f64,
-) -> Option<Vec<[f64; 3]>> {
+) -> Option<Vec<[f64; 3]>> { //  [lower, middle, upper]
     let middle_bound = sma(window_size, data_set).unwrap();
 
     let mut res: Vec<[f64; 3]> = Vec::new();
@@ -101,9 +107,9 @@ pub fn bb(
 
 
         res.push([
-            middle_bound[i] + multiplier * standard_deviation,
-            middle_bound[i],
             middle_bound[i] - multiplier * standard_deviation,
+            middle_bound[i],
+            middle_bound[i] + multiplier * standard_deviation,
         ]);
     }
 

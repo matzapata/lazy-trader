@@ -113,7 +113,7 @@ impl RunCommand for SentimentCmd {
                 let formatted_date = datetime.format("%d-%m-%Y %Hhs").to_string();
 
                 // if show-all is false, skip indicators that are not bullish nor bearish
-                if !self.info {
+                if !self.neutral {
                     // skip row if no indicator is bullish n
                     if !indicators.iter().any(|indicator| {
                         indicator.get(current_time).sentiment != IndicatorSentiment::Neutral

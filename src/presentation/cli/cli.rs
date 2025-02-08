@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use clap::{Parser, Subcommand};
 use console::style;
 
-use crate::commands::{config::ConfigCmd, error::CliError, sentiment::SentimentCmd};
+use crate::commands::{config::ConfigCmd, entry::EntryCmd, error::CliError, sentiment::SentimentCmd};
 
 #[async_trait]
 pub trait RunCommand {
@@ -23,14 +23,17 @@ pub enum Commands {
     /// Analyze market sentiment
     Sentiment(SentimentCmd),
     /// Configuration
-    Config(ConfigCmd)
+    Config(ConfigCmd),
+    /// Calculate entry
+    Entry(EntryCmd),
 }
 
 impl Cli {
     pub async fn run(self) -> ExitCode {
         let output = match self.command {
             Commands::Sentiment(sentiment) => sentiment.run().await,
-            Commands::Config(config) => config.run().await
+            Commands::Config(config) => config.run().await,
+            Commands::Entry(entry) => entry.run().await,
         };
 
         match output {

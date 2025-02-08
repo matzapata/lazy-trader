@@ -19,10 +19,16 @@ impl std::fmt::Display for IndicatorResult {
             self.value.iter().map(|&v| format!("{:.2}", v)).collect();
         let formatted_values_str = formatted_values.join(", ");
 
+        // let styled_output = match self.sentiment {
+        //     IndicatorSentiment::Bullish => format!("Bullish({})", formatted_values_str).to_string(),
+        //     IndicatorSentiment::Bearish => format!("Bearish({})", formatted_values_str).to_string(),
+        //     IndicatorSentiment::Neutral => format!("Neutral({})", formatted_values_str).to_string(),
+        // };
+
         let styled_output = match self.sentiment {
-            IndicatorSentiment::Bullish => format!("Bullish({})", formatted_values_str).to_string(),
-            IndicatorSentiment::Bearish => format!("Bearish({})", formatted_values_str).to_string(),
-            IndicatorSentiment::Neutral => format!("Neutral({})", formatted_values_str).to_string(),
+            IndicatorSentiment::Bullish => format!("Bullish").to_string(),
+            IndicatorSentiment::Bearish => format!("Bearish").to_string(),
+            IndicatorSentiment::Neutral => format!("Neutral").to_string(),
         };
 
         write!(f, "{}", styled_output)

@@ -26,9 +26,9 @@ impl TAsRsiIndicator for f64 {
         IndicatorResult {
             value: vec![*self],
             sentiment: if *self > 70.0 {
-                IndicatorSentiment::Bullish
-            } else if *self < 30.0 {
                 IndicatorSentiment::Bearish
+            } else if *self < 30.0 {
+                IndicatorSentiment::Bullish
             } else {
                 IndicatorSentiment::Neutral
             },
@@ -78,10 +78,9 @@ impl TIndicator for RsiIndicator {
         }
 
         // fill with res
-        for i in 0..res.len() {
+        for i in self.window_size..res.len() {
             let timestamp = data
                 .iter()
-                .rev()
                 .nth(i + self.window_size)
                 .unwrap()
                 .close_time;
@@ -107,8 +106,10 @@ fn rsi(data_set: &Vec<f64>, window_size: usize) -> Option<Vec<f64>> {
     if window_size > data_set.len() {
         return None;
     }
+
     let mut previous_average_gain;
     let mut previous_average_loss;
+
     // RSI Step one
     let mut gains_sum = 0.0;
     let mut loss_sum = 0.0;
@@ -127,9 +128,11 @@ fn rsi(data_set: &Vec<f64>, window_size: usize) -> Option<Vec<f64>> {
     let current_average_gain = gains_sum / window_size as f64;
     let current_average_loss = loss_sum / window_size as f64;
     let rsi_a = 100.0 - 100.0 / (1.0 + (current_average_gain / current_average_loss));
+
     previous_average_gain = current_average_gain;
     previous_average_loss = current_average_loss;
     result.push(rsi_a);
+    
     // RSI Step two
     for i in (window_size + 1)..data_set.len() {
         let gain = (100.0 / data_set[i - 1]) * data_set[i] - 100.0;
