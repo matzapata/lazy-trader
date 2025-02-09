@@ -28,7 +28,7 @@ impl TIndicator for SmaIndicator {
     }
 
     fn info(&self) -> &'static str {
-"
+        "
   SMA: Simple Moving Average
   
   Bullish Signals:
@@ -49,8 +49,8 @@ impl TIndicator for SmaIndicator {
             return Err("Invalid window size".into());
         }
 
-        let slow_ema = sma(self.slow_length, &price_data).unwrap();
-        let fast_ema = sma(self.fast_length, &price_data).unwrap();
+        let slow_ema = sma(&price_data, self.slow_length).unwrap();
+        let fast_ema = sma(&price_data, self.fast_length).unwrap();
 
         for i in 0..price_data.len() {
             let timestamp = data[i].close_time;
@@ -85,7 +85,7 @@ impl TIndicator for SmaIndicator {
     }
 }
 
-pub fn sma(window_size: usize, data: &Vec<f64>) -> Option<Vec<f64>> {
+pub fn sma(data: &Vec<f64>, window_size: usize) -> Option<Vec<f64>> {
     if window_size > data.len() {
         return None;
     }
@@ -112,49 +112,25 @@ mod tests {
 
     #[test]
     fn test_simple_moving_average() {
-        let data_set = kline_data_from_close_price(&[5.0, 6.0, 4.0, 2.0]);
+        let data_set = vec![5.0, 6.0, 4.0, 2.0];
 
-        // // test with window size 2
-        // let sma2 = SmaIndicator::new(2);
-        // let result = sma2.compute(&data_set).unwrap();
-        // assert_eq!(3, result.len());
-        // // assert_eq!(vec![5.5, 5.0, 3.0], result);
+        // test with window size 2
+        let result = sma(&data_set, 2).unwrap();
+        assert_eq!(3, result.len());
+        assert_eq!(vec![5.5, 5.0, 3.0], result);
 
-        // // test with window size 3
-        // let sma3 = SmaIndicator::new(3);
-        // let result = sma3.compute(&data_set).unwrap();
-        // assert_eq!(2, result.len());
-        // // assert_eq!(vec![5.0, 4.0], result);
+        // test with window size 3
+        let result = sma(&data_set, 3).unwrap();
+        assert_eq!(2, result.len());
+        assert_eq!(vec![5.0, 4.0], result);
 
-        // // test with window size 4
-        // let sma4 = SmaIndicator::new(4);
-        // let result = sma4.compute(&data_set).unwrap();
-        // assert_eq!(1, result.len());
-        // // assert_eq!(vec![4.25], result);
+        // test with window size 4
+        let result = sma(&data_set, 4).unwrap();
+        assert_eq!(1, result.len());
+        assert_eq!(vec![4.25], result);
 
-        // // test with window size bigger than data size, should return None
-        // let sma5 = SmaIndicator::new(5);
-        // let result = sma5.compute(&data_set);
-        // assert_eq!(None, result);
-    }
-
-    fn kline_data_from_close_price(close_prices: &[f64]) -> Vec<MarketKlineData> {
-        close_prices
-            .iter()
-            .map(|&close| MarketKlineData {
-                close,
-                open: 0.0,
-                high: 0.0,
-                low: 0.0,
-                volume: 0.0,
-                close_time: 0,
-                open_time: 0,
-                quote_asset_volume: 0.0,
-                number_of_trades: 0,
-                take_buy_base_asset_volume: 0.0,
-                take_buy_quote_asset_volume: 0.0,
-                ignore: 0.0,
-            })
-            .collect()
+        // test with window size bigger than data size, should return None
+        let result = sma(&data_set, 5);
+        assert_eq!(None, result);
     }
 }

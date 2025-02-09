@@ -28,7 +28,7 @@ impl TIndicator for EmaIndicator {
     }
 
     fn info(&self) -> &'static str {
-"
+        "
   EMA: Exponential Moving Average
   
   Bullish Signals:
@@ -49,8 +49,8 @@ impl TIndicator for EmaIndicator {
             return Err("Invalid window size".into());
         }
 
-        let slow_ema = ema(self.slow_length, &price_data);
-        let fast_ema = ema(self.fast_length, &price_data);
+        let slow_ema = ema(&price_data, self.slow_length);
+        let fast_ema = ema(&price_data, self.fast_length);
 
         for i in 0..price_data.len() {
             let timestamp = data[i].close_time;
@@ -85,17 +85,14 @@ impl TIndicator for EmaIndicator {
     }
 }
 
-pub fn ema(window_size: usize, data_set: &Vec<f64>) -> Vec<f64> {
+pub fn ema(data_set: &Vec<f64>, window_size: usize) -> Vec<f64> {
     let mut result: Vec<f64> = Vec::new();
-
-    for _ in 0..(window_size - 1) {
-        result.push(0.0);
-    }
 
     let weighted_multiplier = 2.0 / (window_size as f64 + 1.0);
     let first_slice = &data_set[0..window_size];
     let first_sma: f64 = first_slice.iter().sum::<f64>() / window_size as f64;
     result.push(first_sma);
+    
     for i in window_size..data_set.len() {
         let previous_ema = result[result.len() - 1];
         let ema: f64 =
@@ -106,60 +103,31 @@ pub fn ema(window_size: usize, data_set: &Vec<f64>) -> Vec<f64> {
     result
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_exponential_moving_average() {
-        let data_set = kline_data_from_close_price(&[5.0, 6.0, 4.0, 2.0]);
+        let data_set = vec![5.0, 6.0, 4.0, 2.0];
 
-        // println!("{:?}", ema(2, &data_set.iter().map(|f| f.close).collect()));
+        let result = ema(&data_set, 2);
+        assert_eq!(3, result.len());
+        assert_eq!(vec![5.5, 4.5, 2.8333333333333335], result);
 
-        // ema 2 test
+        let result = ema(&data_set, 4);
+        assert_eq!(1, result.len());
+        assert_eq!(vec![4.25], result);
 
-        let mut ema_2 = EmaIndicator::new(2, 4);
-        ema_2.compute(&data_set).unwrap();
+        let data_set = vec![
+            22.27, 22.19, 22.08, 22.17, 22.18, 22.13, 22.23, 22.43, 22.24, 22.29, 22.15, 22.39,
+        ];
 
-        for i in 0..data_set.len() {
-            println!("{:?}", ema_2.get(data_set[i].close_time));
-        }
-
-        // assert!(ema_2.get(0).value[0] == 0.0);
-        // assert!(ema_2.get(1).value[0] == 5.5);
-        // assert!(ema_2.get(2).value[0] == 4.5);
-        // assert!(ema_2.get(3).value[0] == 2.8333333333333335);
-
-        // // ema 4 test
-
-        // let mut ema_4 = EmaIndicator::new(4);
-        // ema_4.compute(&data_set).unwrap();
-
-        // println!("{}", ema_4.get(3).value[0]);
-        // assert!(ema_4.get(3).value[0] == 4.24);
-    }
-
-    fn kline_data_from_close_price(close_prices: &[f64]) -> Vec<MarketKlineData> {
-        close_prices
-            .iter()
-            .enumerate()
-            .map(|(i, &close)| MarketKlineData {
-                close,
-                open: 0.0,
-                high: 0.0,
-                low: 0.0,
-                volume: 0.0,
-                close_time: i as i64,
-                open_time: 0,
-                quote_asset_volume: 0.0,
-                number_of_trades: 0,
-                take_buy_base_asset_volume: 0.0,
-                take_buy_quote_asset_volume: 0.0,
-                ignore: 0.0,
-            })
-            .collect()
+        let result = ema(&data_set, 10);
+        assert_eq!(3, result.len());
+        assert_eq!(
+            vec![22.220999999999997, 22.208090909090906, 22.241165289256195],
+            result
+        );
     }
 }
-
-

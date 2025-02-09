@@ -42,7 +42,7 @@ impl TIndicator for RsiIndicator {
     }
 
     fn info(&self) -> &'static str {
-"
+        "
   RSI: Relative Strength Index
   
   Bullish Signals:
@@ -63,7 +63,7 @@ impl TIndicator for RsiIndicator {
         }
 
         let price_data = data.iter().map(|f| f.close).collect::<Vec<f64>>();
-        let res = rsi(&price_data, self.window_size).unwrap();
+        let res = rsi(&price_data, self.window_size);
 
         // fill with 0
         for i in 0..self.window_size {
@@ -79,11 +79,7 @@ impl TIndicator for RsiIndicator {
 
         // fill with res
         for i in self.window_size..res.len() {
-            let timestamp = data
-                .iter()
-                .nth(i + self.window_size)
-                .unwrap()
-                .close_time;
+            let timestamp = data.iter().nth(i + self.window_size).unwrap().close_time;
             self.values.insert(timestamp, res[i].as_rsi_indicator());
         }
 
@@ -101,11 +97,8 @@ impl TIndicator for RsiIndicator {
     }
 }
 
-fn rsi(data_set: &Vec<f64>, window_size: usize) -> Option<Vec<f64>> {
+fn rsi(data_set: &Vec<f64>, window_size: usize) -> Vec<f64> {
     let mut result: Vec<f64> = Vec::new();
-    if window_size > data_set.len() {
-        return None;
-    }
 
     let mut previous_average_gain;
     let mut previous_average_loss;
@@ -132,7 +125,7 @@ fn rsi(data_set: &Vec<f64>, window_size: usize) -> Option<Vec<f64>> {
     previous_average_gain = current_average_gain;
     previous_average_loss = current_average_loss;
     result.push(rsi_a);
-    
+
     // RSI Step two
     for i in (window_size + 1)..data_set.len() {
         let gain = (100.0 / data_set[i - 1]) * data_set[i] - 100.0;
@@ -152,9 +145,9 @@ fn rsi(data_set: &Vec<f64>, window_size: usize) -> Option<Vec<f64>> {
         let rsi = 100.0 - 100.0 / (1.0 + current_average_gain / current_average_loss);
         result.push(rsi);
     }
-    Some(result)
+    
+    result
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -162,49 +155,35 @@ mod tests {
 
     #[test]
     fn test_relative_strength_index() {
-        let mut rsi = RsiIndicator::new(8);
-        let data = kline_data_from_close_price(&[
-            5.0, 4.5, 4.0, 3.5, 3.5, 3.0, 2.0, 1.0, 1.5, 2.0, 4.0, 6.0, 5.0,
-        ]);
+        let data_set = vec![
+            5.0, 6.0, 4.0, 2.0, 1.5, 1.0, 2.0, 3.0, 3.5, 3.5, 4.0, 4.5, 5.0,
+        ];
 
-        rsi.compute(&data).unwrap();
+        let result = rsi(&data_set, 8);
 
-        for i in 0..data.len() {
-            println!("{:?}", rsi.get(data[i].close_time));
-        }
-        //    println!("{}", rsi.get(9));
+        assert_eq!(5, result.len());
+        assert_eq!(
+            vec![
+                56.852791878172596,
+                56.852791878172596,
+                59.17295654731064,
+                61.256328819550575,
+                63.16578540011347
+            ],
+            result
+        );
 
-        // assert_eq!(5, result.len());
-        // assert_eq!(
-        //     vec![
-        //         56.852791878172596.as_rsi_indicator(0),
-        //         56.852791878172596.as_rsi_indicator(0),
-        //         59.17295654731064.as_rsi_indicator(0),
-        //         61.256328819550575.as_rsi_indicator(0),
-        //         63.16578540011347.as_rsi_indicator(0)
-        //     ],
-        //     result
-        // );
-    }
+        let data_set = vec![
+            44.34, 44.09, 44.15, 43.61, 44.33, 44.83, 45.10, 45.42, 45.84, 46.08, 45.89, 46.03,
+            45.61, 46.28, 46.28, 46.00, 46.03,
+        ];
 
-    fn kline_data_from_close_price(close_prices: &[f64]) -> Vec<MarketKlineData> {
-        close_prices
-            .iter()
-            .enumerate()
-            .map(|(i, &close)| MarketKlineData {
-                close,
-                open: 0.0,
-                high: 0.0,
-                low: 0.0,
-                volume: 0.0,
-                close_time: i as i64,
-                open_time: 0,
-                quote_asset_volume: 0.0,
-                number_of_trades: 0,
-                take_buy_base_asset_volume: 0.0,
-                take_buy_quote_asset_volume: 0.0,
-                ignore: 0.0,
-            })
-            .collect()
+        let result = rsi(&data_set, 14);
+
+        assert_eq!(3, result.len());
+        assert_eq!(
+            vec![70.53539393736207, 66.436571546019, 66.66146763681454],
+            result
+        );
     }
 }

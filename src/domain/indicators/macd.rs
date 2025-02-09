@@ -49,7 +49,7 @@ impl TIndicator for MacdIndicator {
             return Err("Invalid window size".into());
         }
 
-        let (macd, signal) = moving_average_convergence_divergence(
+        let (macd, signal) = macd(
             &price_data,
             self.fast_length,
             self.slow_length,
@@ -95,61 +95,58 @@ impl TIndicator for MacdIndicator {
     }
 }
 
-pub fn moving_average_convergence_divergence(
+pub fn macd(
     data_set: &Vec<f64>,
     fast_length: usize,
     slow_length: usize,
     signal_length: usize,
 ) -> (Vec<f64>, Vec<f64>) {
-    let fast_ema = ema(fast_length, data_set);
-    let slow_ema = ema(slow_length, data_set);
+    let fast_ema = ema(data_set, fast_length);
+    let slow_ema = ema(data_set, slow_length);
 
     let mut macd: Vec<f64> = Vec::new();
     for i in 0..slow_ema.len() {
         let macd_val = fast_ema[(fast_ema.len() - slow_ema.len()) + i] - slow_ema[i];
         macd.push(macd_val);
     }
-
-    let signal = ema(signal_length, &macd);
+    
+    let signal = ema(&macd, signal_length);
 
     (macd, signal)
 }
 
-// #[test]
-// fn test_moving_average_convergence_divergence() {
-//     let data_set = vec![
-//         5.0, 6.0, 4.0, 2.0, 1.5, 1.0, 2.0, 3.0, 3.5, 3.5, 4.0, 4.5, 5.0,
-//     ];
+#[test]
+fn test_moving_average_convergence_divergence() {
+    let data_set = vec![
+        5.0, 6.0, 4.0, 2.0, 1.5, 1.0, 2.0, 3.0, 3.5, 3.5, 4.0, 4.5, 5.0,
+    ];
 
-//     let result = moving_average_convergence_divergence(&data_set, 12, 26, 9);
-//     assert_eq!(None, result);
-
-//     let result = moving_average_convergence_divergence(&data_set, 3, 6, 2).unwrap();
-//     assert_eq!(8, result.macd.len());
-//     assert_eq!(
-//         vec![
-//             -1.5,
-//             -1.0178571428571432,
-//             -0.48596938775510257,
-//             -0.1194424198250732,
-//             0.02852327155351908,
-//             0.18443626539537084,
-//             0.32091429671097904,
-//             0.4309544083649852
-//         ],
-//         result.macd
-//     );
-//     assert_eq!(7, result.signal.len());
-//     assert_eq!(
-//         vec![
-//             -1.2589285714285716,
-//             -0.7436224489795923,
-//             -0.32750242954324627,
-//             -0.09015196214540272,
-//             0.09290685621511298,
-//             0.24491181654569036,
-//             0.36894021109188696
-//         ],
-//         result.signal
-//     );
-// }
+    let result = macd(&data_set, 3, 6, 2);
+    assert_eq!(8, result.0.len());
+    assert_eq!(
+        vec![
+            -1.5,
+            -1.0178571428571432,
+            -0.48596938775510257,
+            -0.1194424198250732,
+            0.02852327155351908,
+            0.18443626539537084,
+            0.32091429671097904,
+            0.4309544083649852
+        ],
+        result.0
+    );
+    assert_eq!(7, result.1.len());
+    assert_eq!(
+        vec![
+            -1.2589285714285716,
+            -0.7436224489795923,
+            -0.32750242954324627,
+            -0.09015196214540272,
+            0.09290685621511298,
+            0.24491181654569036,
+            0.36894021109188696
+        ],
+        result.1
+    );
+}
