@@ -21,7 +21,6 @@ impl Default for Config {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Market {
     pub id: String,
-    pub url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
