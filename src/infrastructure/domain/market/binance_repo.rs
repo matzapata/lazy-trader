@@ -28,7 +28,7 @@ impl TMarketKlineDataRepo for BinanceMarketKlineDataRepo {
 
         let req_url = format!(
             "{}/klines?symbol={}&interval={}&limit={}",
-            BINANCE_URL, market.id, interval_key, market.limit
+            BINANCE_URL, market.id.to_uppercase(), interval_key, market.limit
         );
         let result = self.client.get(&req_url).send().await.unwrap();
 

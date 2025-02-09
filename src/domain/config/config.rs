@@ -9,10 +9,14 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Config {
-            markets: Vec::new(),
+            markets: vec![
+                Market { id: "BTCUSDT".to_string() },
+                Market { id: "ETHUSDT".to_string() },
+                Market { id: "SOLUSDT".to_string() },
+            ],
             strategy: Strategy {
-                stop_loss: 0.0,
-                take_profit: 0.0,
+                stop_loss: 0.97,
+                take_profit: 1.05,
             }
         }
     }

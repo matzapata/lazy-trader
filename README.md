@@ -1,55 +1,401 @@
 
-# Technical indicators example implementations
+# Lazy trader
 
-This project contains examples on how to implement certain technical indicator formulas in Rust code. The indicators are: Simple Moving Average (SMA), Exponential Moving Average (EMA), Moving Average Convergence Divergence (MACD), Bollinger Bands (BOLL), and Relative Strength Index (RSI).
+Lazy trader is a cli that makes it easy to quickly grasp a sense of the market. Taking some popular indicators, rsi, bb, ema, sma, etc. We quickly show to the user potential opportunities. The idea is to quickly get a sense of weather it's worth it to further analyze the situation and make a trade or not.
 
-The project also downloads historical coin price data for BTC and USDT from the Binance API to use with these technical indicators.
+## Commands
 
-I have a blog post explaining the writing of the code for this project: (How to: technical indicators with Rust and Binance)[https://tms-dev-blog.com/how-to-technical-indicators-with-rust-and-binance/]
+```bash
+lt --help
 
-## Running
+# Usage: lt <COMMAND>
 
-Simply run using `cargo run --release`.
+# Commands:
+#   sentiment   Analyze market sentiment
+#   config      Configuration
+#   entry       Calculate entry
+#   indicators  Explain indicators
+#   help        Print this message or the help of the given subcommand(s)
 
+# Options:
+#   -h, --help     Print help
+#   -V, --version  Print version
+```
 
-Objective
-// Basic analysis to quickly note which tokens are worth looking deeper
-- RSI > 70 
-- RSI < 30
-- MACD cross line under 0 (supported with 200 day ema for trend direction, if direction is sidelines ignore)
+### Sentiment
 
-// CLI
+```bash
+lt sentiment --help
 
-// TODO:
-// - Look for cross between moving averages from low to up
-// - Look for RSI bigger than 70 and lower than 30
-// - Take data from json file
-// - Note 
+# Analyze market sentiment
 
-// - When signals are buy, calculate entry, take profit and stop loss
+# Usage: lt sentiment [OPTIONS] --interval <INTERVAL> [MARKET]
 
-// TODO:
-// - Extras, store orders and balances
+# Arguments:
+#   [MARKET]  
 
-- TODO: take config from ~/.config
+# Options:
+#       --limit <LIMIT>        [default: 200]
+#   -i, --interval <INTERVAL>  [possible values: d1, h1]
+#       --hide-neutral         
+#   -h, --help                 Print help
+```
 
-TODO: deamon that manages alerts and so on
+Example outputs
 
+```bash
+lt sentiment --interval h1
 
-Example config
+# +-----------------+---------+---------+---------+---------+
+# | 08-02-2025 13hs | Neutral | Bearish | Bullish | Neutral |
+# | 08-02-2025 14hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 15hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 16hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 17hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 18hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 19hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 20hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 21hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 22hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 23hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 00hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 01hs | Neutral | Bearish | Neutral | Bullish |
+# | 09-02-2025 02hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 03hs | Neutral | Bearish | Neutral | Bullish |
+# | 09-02-2025 04hs | Neutral | Bearish | Neutral | Bullish |
+# | 09-02-2025 05hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 06hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 07hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 08hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 09hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 10hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 11hs | Neutral | Bearish | Bearish | Neutral |
+# | 09-02-2025 12hs | Neutral | Bearish | Neutral | Neutral |
+# | Date            | RSI     | EMA     | MACD    | BB      |
+# +-----------------+---------+---------+---------+---------+
+# BTCUSDT - 1H
+# ------------------------------------------------------------------------------------------
+# +-----------------+---------+---------+---------+---------+
+# | 08-02-2025 13hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 14hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 15hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 16hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 17hs | Neutral | Bearish | Neutral | Bullish |
+# | 08-02-2025 18hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 19hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 20hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 21hs | Neutral | Bearish | Neutral | Bullish |
+# | 08-02-2025 22hs | Neutral | Bullish | Neutral | Neutral |
+# | 08-02-2025 23hs | Neutral | Bullish | Neutral | Neutral |
+# | 09-02-2025 00hs | Neutral | Bullish | Neutral | Neutral |
+# | 09-02-2025 01hs | Neutral | Bullish | Neutral | Bullish |
+# | 09-02-2025 02hs | Neutral | Bullish | Neutral | Neutral |
+# | 09-02-2025 03hs | Bearish | Bullish | Neutral | Bullish |
+# | 09-02-2025 04hs | Bearish | Bullish | Neutral | Bullish |
+# | 09-02-2025 05hs | Bearish | Bullish | Neutral | Neutral |
+# | 09-02-2025 06hs | Neutral | Bullish | Neutral | Neutral |
+# | 09-02-2025 07hs | Neutral | Bullish | Neutral | Neutral |
+# | 09-02-2025 08hs | Neutral | Bullish | Neutral | Neutral |
+# | 09-02-2025 09hs | Neutral | Bullish | Neutral | Neutral |
+# | 09-02-2025 10hs | Neutral | Bullish | Bearish | Neutral |
+# | 09-02-2025 11hs | Neutral | Bullish | Neutral | Neutral |
+# | 09-02-2025 12hs | Neutral | Bullish | Neutral | Neutral |
+# | Date            | RSI     | EMA     | MACD    | BB      |
+# +-----------------+---------+---------+---------+---------+
+# SOLUSDT - 1H
+# ------------------------------------------------------------------------------------------
+# +-----------------+---------+---------+---------+---------+
+# | 08-02-2025 13hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 14hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 15hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 16hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 17hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 18hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 19hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 20hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 21hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 22hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 23hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 00hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 01hs | Neutral | Bearish | Neutral | Bullish |
+# | 09-02-2025 02hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 03hs | Neutral | Bearish | Neutral | Bullish |
+# | 09-02-2025 04hs | Neutral | Bearish | Neutral | Bullish |
+# | 09-02-2025 05hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 06hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 07hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 08hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 09hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 10hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 11hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 12hs | Neutral | Bearish | Neutral | Neutral |
+# | Date            | RSI     | EMA     | MACD    | BB      |
+# +-----------------+---------+---------+---------+---------+
+# ETHUSDT - 1H
+# ------------------------------------------------------------------------------------------
+```
 
-```json
-{
-    "tokens": [
-        {
-            "key": "BTCUSDT",
-            "url": "https://jup.ag/swap/USDC-SOL"
-        }
-    ],
-    "strategy": {
-        "stop_loss": "0.05",
-        "take_profit": "0.07"
-    },
-}
+```bash
+lt sentiment ethusdt --interval h1
 
+# +-----------------+---------+---------+---------+---------+
+# | 01-02-2025 07hs | Neutral | Neutral | Neutral | Neutral |
+# | 01-02-2025 08hs | Neutral | Neutral | Neutral | Neutral |
+# | 01-02-2025 09hs | Neutral | Neutral | Neutral | Neutral |
+# | 01-02-2025 10hs | Neutral | Neutral | Neutral | Neutral |
+# | 01-02-2025 11hs | Neutral | Neutral | Neutral | Neutral |
+# | 01-02-2025 12hs | Neutral | Neutral | Neutral | Neutral |
+# | 01-02-2025 13hs | Neutral | Neutral | Neutral | Neutral |
+# | 01-02-2025 14hs | Neutral | Neutral | Neutral | Neutral |
+# | 01-02-2025 15hs | Neutral | Neutral | Neutral | Neutral |
+# | 01-02-2025 16hs | Neutral | Neutral | Neutral | Neutral |
+# | 01-02-2025 17hs | Neutral | Neutral | Neutral | Neutral |
+# | 01-02-2025 18hs | Neutral | Neutral | Bullish | Neutral |
+# | 01-02-2025 19hs | Neutral | Neutral | Neutral | Neutral |
+# | 01-02-2025 20hs | Neutral | Neutral | Neutral | Neutral |
+# | 01-02-2025 21hs | Neutral | Neutral | Neutral | Neutral |
+# | 01-02-2025 22hs | Neutral | Neutral | Neutral | Neutral |
+# | 01-02-2025 23hs | Neutral | Neutral | Neutral | Neutral |
+# | 02-02-2025 00hs | Neutral | Neutral | Neutral | Neutral |
+# | 02-02-2025 01hs | Neutral | Neutral | Neutral | Neutral |
+# | 02-02-2025 02hs | Neutral | Neutral | Neutral | Neutral |
+# | 02-02-2025 03hs | Neutral | Neutral | Neutral | Bearish |
+# | 02-02-2025 04hs | Neutral | Neutral | Neutral | Neutral |
+# | 02-02-2025 05hs | Neutral | Neutral | Neutral | Neutral |
+# | 02-02-2025 06hs | Neutral | Neutral | Neutral | Neutral |
+# | 02-02-2025 07hs | Neutral | Neutral | Neutral | Neutral |
+# | 02-02-2025 08hs | Neutral | Neutral | Bearish | Neutral |
+# | 02-02-2025 09hs | Neutral | Neutral | Neutral | Neutral |
+# | 02-02-2025 10hs | Neutral | Neutral | Neutral | Neutral |
+# | 02-02-2025 11hs | Bullish | Neutral | Neutral | Neutral |
+# | 02-02-2025 12hs | Bullish | Neutral | Neutral | Neutral |
+# | 02-02-2025 13hs | Neutral | Neutral | Neutral | Neutral |
+# | 02-02-2025 14hs | Neutral | Neutral | Neutral | Neutral |
+# | 02-02-2025 15hs | Neutral | Neutral | Neutral | Neutral |
+# | 02-02-2025 16hs | Bullish | Neutral | Neutral | Bearish |
+# | 02-02-2025 17hs | Bullish | Neutral | Neutral | Bearish |
+# | 02-02-2025 18hs | Bullish | Neutral | Neutral | Bearish |
+# | 02-02-2025 19hs | Bullish | Neutral | Neutral | Neutral |
+# | 02-02-2025 20hs | Bullish | Neutral | Neutral | Neutral |
+# | 02-02-2025 21hs | Bullish | Neutral | Neutral | Bearish |
+# | 02-02-2025 22hs | Bullish | Neutral | Neutral | Bearish |
+# | 02-02-2025 23hs | Bullish | Neutral | Neutral | Neutral |
+# | 03-02-2025 00hs | Bullish | Neutral | Neutral | Bearish |
+# | 03-02-2025 01hs | Bullish | Neutral | Neutral | Bearish |
+# | 03-02-2025 02hs | Bullish | Neutral | Neutral | Bearish |
+# | 03-02-2025 03hs | Bullish | Neutral | Neutral | Bearish |
+# | 03-02-2025 04hs | Bullish | Neutral | Neutral | Bearish |
+# | 03-02-2025 05hs | Bullish | Neutral | Neutral | Neutral |
+# | 03-02-2025 06hs | Bullish | Neutral | Neutral | Neutral |
+# | 03-02-2025 07hs | Neutral | Neutral | Neutral | Neutral |
+# | 03-02-2025 08hs | Neutral | Neutral | Neutral | Neutral |
+# | 03-02-2025 09hs | Neutral | Bearish | Neutral | Neutral |
+# | 03-02-2025 10hs | Neutral | Bearish | Neutral | Neutral |
+# | 03-02-2025 11hs | Neutral | Bearish | Bullish | Neutral |
+# | 03-02-2025 12hs | Neutral | Bearish | Neutral | Neutral |
+# | 03-02-2025 13hs | Neutral | Bearish | Neutral | Neutral |
+# | 03-02-2025 14hs | Neutral | Bearish | Neutral | Neutral |
+# | 03-02-2025 15hs | Neutral | Bearish | Neutral | Neutral |
+# | 03-02-2025 16hs | Neutral | Bearish | Neutral | Neutral |
+# | 03-02-2025 17hs | Neutral | Bearish | Neutral | Neutral |
+# | 03-02-2025 18hs | Neutral | Bearish | Neutral | Neutral |
+# | 03-02-2025 19hs | Neutral | Bearish | Neutral | Neutral |
+# | 03-02-2025 20hs | Neutral | Bearish | Neutral | Neutral |
+# | 03-02-2025 21hs | Neutral | Bearish | Neutral | Bullish |
+# | 03-02-2025 22hs | Neutral | Bearish | Neutral | Bullish |
+# | 03-02-2025 23hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 00hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 01hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 02hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 03hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 04hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 05hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 06hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 07hs | Neutral | Bearish | Bearish | Neutral |
+# | 04-02-2025 08hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 09hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 10hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 11hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 12hs | Neutral | Bearish | Bullish | Neutral |
+# | 04-02-2025 13hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 14hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 15hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 16hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 17hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 18hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 19hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 20hs | Neutral | Bearish | Bearish | Neutral |
+# | 04-02-2025 21hs | Neutral | Bearish | Neutral | Bearish |
+# | 04-02-2025 22hs | Neutral | Bearish | Neutral | Neutral |
+# | 04-02-2025 23hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 00hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 01hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 02hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 03hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 04hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 05hs | Neutral | Bearish | Bullish | Neutral |
+# | 05-02-2025 06hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 07hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 08hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 09hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 10hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 11hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 12hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 13hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 14hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 15hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 16hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 17hs | Neutral | Bearish | Bearish | Neutral |
+# | 05-02-2025 18hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 19hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 20hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 21hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 22hs | Neutral | Bearish | Neutral | Neutral |
+# | 05-02-2025 23hs | Neutral | Bearish | Bullish | Neutral |
+# | 06-02-2025 00hs | Neutral | Bearish | Neutral | Neutral |
+# | 06-02-2025 01hs | Neutral | Bearish | Neutral | Neutral |
+# | 06-02-2025 02hs | Neutral | Bearish | Neutral | Neutral |
+# | 06-02-2025 03hs | Neutral | Bearish | Neutral | Neutral |
+# | 06-02-2025 04hs | Neutral | Bearish | Neutral | Neutral |
+# | 06-02-2025 05hs | Neutral | Bearish | Neutral | Neutral |
+# | 06-02-2025 06hs | Neutral | Bullish | Neutral | Bullish |
+# | 06-02-2025 07hs | Neutral | Bullish | Neutral | Neutral |
+# | 06-02-2025 08hs | Neutral | Bullish | Neutral | Neutral |
+# | 06-02-2025 09hs | Neutral | Bullish | Neutral | Neutral |
+# | 06-02-2025 10hs | Neutral | Bullish | Neutral | Neutral |
+# | 06-02-2025 11hs | Neutral | Bullish | Neutral | Neutral |
+# | 06-02-2025 12hs | Neutral | Bullish | Bearish | Neutral |
+# | 06-02-2025 13hs | Neutral | Bullish | Neutral | Neutral |
+# | 06-02-2025 14hs | Neutral | Bullish | Neutral | Neutral |
+# | 06-02-2025 15hs | Neutral | Bearish | Neutral | Bearish |
+# | 06-02-2025 16hs | Neutral | Bearish | Neutral | Bearish |
+# | 06-02-2025 17hs | Neutral | Bearish | Neutral | Neutral |
+# | 06-02-2025 18hs | Neutral | Bearish | Neutral | Neutral |
+# | 06-02-2025 19hs | Neutral | Bearish | Neutral | Neutral |
+# | 06-02-2025 20hs | Neutral | Bearish | Neutral | Neutral |
+# | 06-02-2025 21hs | Neutral | Bearish | Neutral | Neutral |
+# | 06-02-2025 22hs | Neutral | Bearish | Neutral | Neutral |
+# | 06-02-2025 23hs | Neutral | Bearish | Neutral | Neutral |
+# | 07-02-2025 00hs | Neutral | Bearish | Neutral | Neutral |
+# | 07-02-2025 01hs | Neutral | Bearish | Neutral | Neutral |
+# | 07-02-2025 02hs | Neutral | Bearish | Neutral | Neutral |
+# | 07-02-2025 03hs | Neutral | Bearish | Neutral | Neutral |
+# | 07-02-2025 04hs | Neutral | Bearish | Bullish | Neutral |
+# | 07-02-2025 05hs | Neutral | Bearish | Neutral | Neutral |
+# | 07-02-2025 06hs | Neutral | Bearish | Neutral | Neutral |
+# | 07-02-2025 07hs | Neutral | Bearish | Neutral | Neutral |
+# | 07-02-2025 08hs | Neutral | Bearish | Neutral | Neutral |
+# | 07-02-2025 09hs | Neutral | Bearish | Neutral | Neutral |
+# | 07-02-2025 10hs | Neutral | Bearish | Neutral | Bullish |
+# | 07-02-2025 11hs | Neutral | Bearish | Neutral | Bullish |
+# | 07-02-2025 12hs | Neutral | Bearish | Neutral | Neutral |
+# | 07-02-2025 13hs | Neutral | Bearish | Neutral | Bullish |
+# | 07-02-2025 14hs | Neutral | Bearish | Neutral | Bullish |
+# | 07-02-2025 15hs | Neutral | Bearish | Neutral | Neutral |
+# | 07-02-2025 16hs | Neutral | Bearish | Neutral | Neutral |
+# | 07-02-2025 17hs | Neutral | Bearish | Bearish | Neutral |
+# | 07-02-2025 18hs | Neutral | Bearish | Neutral | Neutral |
+# | 07-02-2025 19hs | Neutral | Bearish | Neutral | Neutral |
+# | 07-02-2025 20hs | Bullish | Bearish | Neutral | Bearish |
+# | 07-02-2025 21hs | Bullish | Bearish | Neutral | Bearish |
+# | 07-02-2025 22hs | Bullish | Bearish | Neutral | Bearish |
+# | 07-02-2025 23hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 00hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 01hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 02hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 03hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 04hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 05hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 06hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 07hs | Neutral | Bearish | Bullish | Neutral |
+# | 08-02-2025 08hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 09hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 10hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 11hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 12hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 13hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 14hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 15hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 16hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 17hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 18hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 19hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 20hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 21hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 22hs | Neutral | Bearish | Neutral | Neutral |
+# | 08-02-2025 23hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 00hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 01hs | Neutral | Bearish | Neutral | Bullish |
+# | 09-02-2025 02hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 03hs | Neutral | Bearish | Neutral | Bullish |
+# | 09-02-2025 04hs | Neutral | Bearish | Neutral | Bullish |
+# | 09-02-2025 05hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 06hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 07hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 08hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 09hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 10hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 11hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 12hs | Neutral | Bearish | Neutral | Neutral |
+# | 09-02-2025 13hs | Neutral | Bearish | Bearish | Neutral |
+# | Date            | RSI     | EMA     | MACD    | BB      |
+# +-----------------+---------+---------+---------+---------+
+# ethusdt - 1H
+# ------------------------------------------------------------------------------------------
+```
+
+### Entry
+
+Computes stop_loss and take_profit price for asset and expected profit and potential loss
+
+```bash
+lt entry --help
+
+# Usage: lt entry <MARKET> [STOP_LOSS] [TAKE_PROFIT] [AMOUNT]
+
+# Arguments:
+#   <MARKET>       
+#   [STOP_LOSS]    
+#   [TAKE_PROFIT]  
+#   [AMOUNT]       
+
+# Options:
+#   -h, --help  Print help
+```
+
+### Indicators
+
+Explains indicators
+
+```bash
+lt indicators --help
+
+# Explain indicators
+
+# Usage: lt indicators
+
+# Options:
+#   -h, --help  Print help
+```
+
+### Config
+
+Defaults configs
+
+```bash
+lt config --help
+
+# Configuration
+
+# Usage: lt config [COMMAND]
+
+# Commands:
+#   show    Show current configuration
+#   set     Set a configuration value
+#   add     Add a configuration value
+#   remove  Delete a configuration value
+#   help    Print this message or the help of the given subcommand(s)
+
+# Options:
+#   -h, --help  Print help
 ```

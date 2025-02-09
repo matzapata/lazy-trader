@@ -35,7 +35,6 @@ impl TConfigRepository for InmemoryConfigRepository {
     }
 
     async fn save_config(&self, config: &Config) -> Result<(), Box<dyn std::error::Error>> {
-        println!("Saving config: {}", self.root.to_string_lossy());
         std::fs::write(&self.root, serde_json::to_string(config)?)?;
         Ok(())
     }

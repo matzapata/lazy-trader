@@ -14,6 +14,8 @@ pub struct ConfigCmd {
 
 #[derive(Subcommand, Debug)]
 pub enum ConfigAction {
+    /// Show current configuration
+    Show {},
     /// Set a configuration value
     Set {
         /// Key of the configuration (e.g., market.limit)
@@ -21,6 +23,7 @@ pub enum ConfigAction {
         /// Value to set for the key
         value: String,
     },
+    /// Add a configuration value
     Add {
         /// Key of the configuration (e.g., market.limit)
         key: String,
@@ -67,6 +70,7 @@ impl RunCommand for ConfigCmd {
                     }
                     _ => print_help(&config),
                 },
+                ConfigAction::Show {} => print_help(&config),
                 ConfigAction::Remove { key, value } => match key.as_str() {
                     "markets" => {
                         config.markets = config
