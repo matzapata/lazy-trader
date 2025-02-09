@@ -28,10 +28,10 @@ impl RunCommand for EntryCmd {
         );
 
         let entry = entry_service
-            .compute_entry(&market, self.amount.unwrap_or(1.0))
+            .compute_entry(&market, self.amount, self.stop_loss, self.take_profit)
             .await;
 
-        println!("With an stop loss at {}, take profit at {} and an entry price of {}, expected profit is {} and potential loss is {}", entry.stop_loss, entry.take_profit, entry.entry_price, entry.expected_profit, entry.expected_loss);
+        println!("With an stop loss at {}, take profit at {} and an entry price of {}, expected profit is {} and potential loss is {}", entry.stop_loss, entry.take_profit, entry.entry_price, entry.expected_profit, entry.potential_loss);
 
         Ok(())
     }

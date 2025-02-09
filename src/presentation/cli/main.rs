@@ -1,3 +1,4 @@
+pub mod console;
 pub mod cli;
 pub mod commands;
 use std::process::ExitCode;

@@ -26,7 +26,8 @@ impl TIndicator for BoilingBandsIndicator {
     }
 
     fn info(&self) -> &'static str {
-"BB: Bollinger Bands
+"
+  BB: Bollinger Bands
 
   Bullish Signals:
     - Price closes above the upper band → Strong bullish momentum, possible continuation.
@@ -36,7 +37,8 @@ impl TIndicator for BoilingBandsIndicator {
   Bearish Signals:
     - Price closes below the lower band → Strong bearish momentum, possible continuation.
     - Price crosses below the middle band (SMA) → Bearish reversal signal.
-    - Bands expand while price stays near the lower band → Trend continuation with increasing volatility."
+    - Bands expand while price stays near the lower band → Trend continuation with increasing volatility.
+"
     }
 
     fn compute(&mut self, data: &Vec<MarketKlineData>) -> Result<(), Box<dyn std::error::Error>> {

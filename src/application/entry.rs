@@ -15,7 +15,7 @@ pub struct  Entry {
     pub stop_loss: f64,
     pub take_profit: f64,
     pub expected_profit: f64,
-    pub expected_loss: f64,
+    pub potential_loss: f64,
     pub entry_price: f64
 }
 
@@ -28,27 +28,21 @@ where
         EntryService { market_data_repo, config_repo }
     }
 
-    pub async fn compute_entry(&self, market: &Market, amount: f64) -> Entry {
+    pub async fn compute_entry(&self, market: &Market, amount: Option<f64>, stop_loss: Option<f64>, take_profit: Option<f64>) -> Entry {
         let price = self.market_data_repo.get_price(market).await.unwrap();
         let config = self.config_repo.get_config().await.unwrap();
 
-        // stop loss
-        let stop_loss = config.strategy.stop_loss * price;
+        let stop_loss_price = stop_loss.unwrap_or(config.strategy.stop_loss) * price;
+        let take_profit_price = take_profit.unwrap_or(config.strategy.take_profit) * price;
 
-        // take profit
-        let take_profit = config.strategy.take_profit * price;
-
-        // expected profit
-        let expected_profit = (take_profit - price) * amount;
-
-        // expected loss
-        let expected_loss = (price - stop_loss) * amount;
+        let expected_profit = (take_profit_price - price) * amount.unwrap_or(1.0);
+        let potential_loss = (price - stop_loss_price) * amount.unwrap_or(1.0);
 
         Entry {
-            stop_loss,
-            take_profit,
+            stop_loss: stop_loss_price,
+            take_profit: take_profit_price,
             expected_profit,
-            expected_loss,
+            potential_loss,
             entry_price: price,
         }
     }

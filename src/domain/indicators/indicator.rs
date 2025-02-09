@@ -15,9 +15,9 @@ pub struct IndicatorResult {
 
 impl std::fmt::Display for IndicatorResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let formatted_values: Vec<String> =
-            self.value.iter().map(|&v| format!("{:.2}", v)).collect();
-        let formatted_values_str = formatted_values.join(", ");
+        // let formatted_values: Vec<String> =
+        //     self.value.iter().map(|&v| format!("{:.2}", v)).collect();
+        // let formatted_values_str = formatted_values.join(", ");
 
         // let styled_output = match self.sentiment {
         //     IndicatorSentiment::Bullish => format!("Bullish({})", formatted_values_str).to_string(),

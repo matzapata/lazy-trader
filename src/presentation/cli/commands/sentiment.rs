@@ -1,5 +1,6 @@
 use super::error::CliError;
 use crate::cli::RunCommand;
+use crate::console::print_divider;
 use async_trait::async_trait;
 use chrono::DateTime;
 use clap::Args;
@@ -10,7 +11,6 @@ use lt::domain::{
 };
 use prettytable::format;
 use prettytable::{color, Attr, Cell, Row, Table};
-use terminal_size::{terminal_size, Width};
 
 #[derive(Args, Debug)]
 pub struct SentimentCmd {
@@ -19,14 +19,11 @@ pub struct SentimentCmd {
     #[arg(long, default_value_t = 200)]
     limit: u32,
 
-    #[arg(long)]
+    #[arg(long, short)]
     interval: SentimentCmdInterval,
 
     #[arg(long, default_value_t = false)]
-    neutral: bool,
-
-    #[arg(long, default_value_t = false)]
-    info: bool,
+    hide_neutral: bool,
 }
 
 #[derive(Debug, Clone, ValueEnum)]
@@ -39,6 +36,14 @@ impl Into<Interval> for SentimentCmdInterval {
         match self {
             SentimentCmdInterval::D1 => Interval::D1,
             SentimentCmdInterval::H1 => Interval::H1,
+        }
+    }
+}
+impl std::fmt::Display for SentimentCmdInterval {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SentimentCmdInterval::D1 => write!(f, "1D"),
+            SentimentCmdInterval::H1 => write!(f, "1H"),
         }
     }
 }
@@ -97,7 +102,7 @@ impl RunCommand for SentimentCmd {
             let end_date = kline_data.last().unwrap().close_time;
             let start_date = match self.market {
                 Some(_) => kline_data.first().unwrap().close_time,
-                None => end_date - interval * 10,
+                None => end_date - interval * 24,
             };
 
             // display results ================================================================
@@ -121,7 +126,7 @@ impl RunCommand for SentimentCmd {
                 let formatted_date = datetime.format("%d-%m-%Y %Hhs").to_string();
 
                 // if show-all is false, skip indicators that are not bullish nor bearish
-                if !self.neutral {
+                if self.hide_neutral {
                     // skip row if no indicator is bullish n
                     if !indicators.iter().any(|indicator| {
                         indicator.get(current_time).sentiment != IndicatorSentiment::Neutral
@@ -162,30 +167,14 @@ impl RunCommand for SentimentCmd {
             );
             table.add_row(header);
 
-            // Print the table
+            // Print the table, and market id
             table.printstd();
-            println!("{}", market.id);            
+
+            println!("{} - {}", market.id, self.interval.to_string());            
             print_divider();
         }
 
-        // print descriptions
-        if self.info {
-            println!();
-            print_divider();
-            for indicator in &indicators {
-                println!("{}", indicator.info());
-                print_divider();
-            }
-        }
 
         Ok(())
     }
-}
-
-fn print_divider() {
-    let width = match terminal_size() {
-        Some((Width(w), _)) => w as usize,
-        None => 80, // Default to 80 if size can't be determined
-    };
-    println!("{}", "-".repeat(width));
 }
