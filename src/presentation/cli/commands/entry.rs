@@ -7,7 +7,7 @@ use clap::Args;
 pub struct EntryCmd {
     market: String,
     stop_loss: Option<f64>,
-    risk: Option<f64>,
+    take_profit: Option<f64>,
     amount: Option<f64>,
 }
 
@@ -31,7 +31,7 @@ impl RunCommand for EntryCmd {
             .compute_entry(&market, self.amount.unwrap_or(1.0))
             .await;
 
-        println!("With an stop loss at {}, take profit at {} and an entry price of {}, expected profit is {} and expected loss is {}", entry.stop_loss, entry.take_profit, entry.entry_price, entry.expected_profit, entry.expected_loss);
+        println!("With an stop loss at {}, take profit at {} and an entry price of {}, expected profit is {} and potential loss is {}", entry.stop_loss, entry.take_profit, entry.entry_price, entry.expected_profit, entry.expected_loss);
 
         Ok(())
     }

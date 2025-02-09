@@ -12,7 +12,7 @@ impl Default for Config {
             markets: Vec::new(),
             strategy: Strategy {
                 stop_loss: 0.0,
-                risk: 0.0,
+                take_profit: 0.0,
             }
         }
     }
@@ -27,7 +27,7 @@ pub struct Market {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Strategy {
     pub stop_loss: f64,
-    pub risk: f64,
+    pub take_profit: f64,
 }
 
 #[async_trait::async_trait]

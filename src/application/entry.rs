@@ -36,7 +36,7 @@ where
         let stop_loss = config.strategy.stop_loss * price;
 
         // take profit
-        let take_profit = config.strategy.risk * price;
+        let take_profit = config.strategy.take_profit * price;
 
         // expected profit
         let expected_profit = (take_profit - price) * amount;

@@ -4,6 +4,7 @@ use crate::domain::market::{
 };
 use reqwest::{Client, StatusCode};
 use serde::{de, Deserialize, Deserializer, Serialize};
+use serde_json::Value;
 
 static BINANCE_URL: &str = "https://api.binance.com/api/v3";
 
@@ -47,8 +48,18 @@ impl TMarketKlineDataRepo for BinanceMarketKlineDataRepo {
         Some(data)
     }
 
-    async fn get_price(&self, _market: &Market) -> Result<f64, Box<dyn std::error::Error>> {
-        Ok(1.0)
+    async fn get_price(&self, market: &Market) -> Result<f64, Box<dyn std::error::Error>> {
+        let req_url = format!("{}/ticker/price?symbol={}", BINANCE_URL, market.id);
+        let result = self.client.get(&req_url).send().await.unwrap();
+
+        if result.status() != StatusCode::OK {
+            return Err(format!("StatusCode: {}", result.status()).into());
+        }
+
+        let json_value: Value = result.json::<Value>().await.unwrap();
+        let price: f64 = json_value.get("price").unwrap().as_str().unwrap().parse().unwrap();
+        
+        Ok(price)
     }
 }
 

@@ -27,7 +27,6 @@ pub struct SentimentCmd {
 
     #[arg(long, default_value_t = false)]
     info: bool,
-
 }
 
 #[derive(Debug, Clone, ValueEnum)]
@@ -59,13 +58,19 @@ impl RunCommand for SentimentCmd {
             Box::new(lt::domain::indicators::rsi::RsiIndicator::new(14)),
             Box::new(lt::domain::indicators::ema::EmaIndicator::new(20, 50)),
             Box::new(lt::domain::indicators::macd::MacdIndicator::new(12, 26, 9)),
-            Box::new(lt::domain::indicators::bb::BoilingBandsIndicator::new(20, 2.0, 50)),
+            Box::new(lt::domain::indicators::bb::BoilingBandsIndicator::new(
+                20, 2.0, 50,
+            )),
         ];
 
         // select markets to analyze
         let mut markets: Vec<Market> = vec![];
-        if let Some(mkt) = self.market {
-            markets.push(Market::new(mkt, self.interval.clone().into(), self.limit));
+        if let Some(mkt) = &self.market {
+            markets.push(Market::new(
+                mkt.clone(),
+                self.interval.clone().into(),
+                self.limit,
+            ));
         } else {
             markets = config_service
                 .get()
@@ -89,8 +94,11 @@ impl RunCommand for SentimentCmd {
                 indicator.compute(&kline_data).unwrap();
             }
 
-            let start_date = kline_data.first().unwrap().close_time;
             let end_date = kline_data.last().unwrap().close_time;
+            let start_date = match self.market {
+                Some(_) => kline_data.first().unwrap().close_time,
+                None => end_date - interval * 10,
+            };
 
             // display results ================================================================
 
@@ -156,15 +164,17 @@ impl RunCommand for SentimentCmd {
 
             // Print the table
             table.printstd();
+            println!("{}", market.id);            
+            print_divider();
+        }
 
-            // print descriptions
-            if self.info {
-                println!();
+        // print descriptions
+        if self.info {
+            println!();
+            print_divider();
+            for indicator in &indicators {
+                println!("{}", indicator.info());
                 print_divider();
-                for indicator in &indicators {
-                    println!("{}", indicator.info());
-                    print_divider();
-                }
             }
         }
 

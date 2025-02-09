@@ -22,11 +22,11 @@ impl RunCommand for ConfigCmd {
 
         match self.subcommand {
             Some(subcommand) => match subcommand.as_str() {
-                "strategy.risk" => {
-                    let risk = self.value.unwrap();
-                    config.strategy.risk = risk.parse().unwrap();
+                "strategy.take_profit" => {
+                    let take_profit = self.value.unwrap();
+                    config.strategy.take_profit = take_profit.parse().unwrap();
                     config_service.save(&config).await?;
-                    println!("{} {}", style("Updated risk").green(), risk);
+                    println!("{} {}", style("Updated take_profit").green(), take_profit);
                 }
                 "strategy.stop_loss" => {
                     let stop_loss = self.value.unwrap();
@@ -54,7 +54,8 @@ impl RunCommand for ConfigCmd {
                     config_service.save(&config).await?;
                     println!("{} {}", style("Removed market").red(), token);
                 },
-                _ => println!("unknown command"),
+                "help" => println!("Available commands: strategy.take_profit, strategy.stop_loss, markets.add, markets.remove"),
+                _ => println!("Available commands: strategy.take_profit, strategy.stop_loss, markets.add, markets.remove"),
             },
             None => println!("{:?}", &config),
         }
