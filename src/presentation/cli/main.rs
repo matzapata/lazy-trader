@@ -1,6 +1,6 @@
-pub mod console;
 pub mod cli;
 pub mod commands;
+pub mod console;
 use std::process::ExitCode;
 
 use clap::Parser;

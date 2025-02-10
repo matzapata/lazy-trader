@@ -1,6 +1,9 @@
 // calculate stop loss, take profit, and entry, expected profit, expected loss, etc
 
-use crate::domain::{config::TConfigRepository, market::{kline_data::TMarketKlineDataRepo, market::Market}};
+use crate::domain::{
+    config::TConfigRepository,
+    market::{kline_data::TMarketKlineDataRepo, market::Market},
+};
 
 pub struct EntryService<R, C>
 where
@@ -11,12 +14,12 @@ where
     market_data_repo: R,
 }
 
-pub struct  Entry {
+pub struct Entry {
     pub stop_loss: f64,
     pub take_profit: f64,
     pub expected_profit: f64,
     pub potential_loss: f64,
-    pub entry_price: f64
+    pub entry_price: f64,
 }
 
 impl<R, C> EntryService<R, C>
@@ -25,10 +28,19 @@ where
     R: TMarketKlineDataRepo,
 {
     pub fn new(market_data_repo: R, config_repo: C) -> Self {
-        EntryService { market_data_repo, config_repo }
+        EntryService {
+            market_data_repo,
+            config_repo,
+        }
     }
 
-    pub async fn compute_entry(&self, market: &Market, amount: Option<f64>, stop_loss: Option<f64>, take_profit: Option<f64>) -> Entry {
+    pub async fn compute_entry(
+        &self,
+        market: &Market,
+        amount: Option<f64>,
+        stop_loss: Option<f64>,
+        take_profit: Option<f64>,
+    ) -> Entry {
         let price = self.market_data_repo.get_price(market).await.unwrap();
         let config = self.config_repo.get_config().await.unwrap();
 

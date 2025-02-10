@@ -170,10 +170,9 @@ impl RunCommand for SentimentCmd {
             // Print the table, and market id
             table.printstd();
 
-            println!("{} - {}", market.id, self.interval.to_string());            
+            println!("{} - {}", market.id, self.interval.to_string());
             print_divider();
         }
-
 
         Ok(())
     }

@@ -3,21 +3,27 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     pub markets: Vec<Market>,
-    pub strategy: Strategy
+    pub strategy: Strategy,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Config {
             markets: vec![
-                Market { id: "BTCUSDT".to_string() },
-                Market { id: "ETHUSDT".to_string() },
-                Market { id: "SOLUSDT".to_string() },
+                Market {
+                    id: "BTCUSDT".to_string(),
+                },
+                Market {
+                    id: "ETHUSDT".to_string(),
+                },
+                Market {
+                    id: "SOLUSDT".to_string(),
+                },
             ],
             strategy: Strategy {
                 stop_loss: 0.97,
                 take_profit: 1.05,
-            }
+            },
         }
     }
 }

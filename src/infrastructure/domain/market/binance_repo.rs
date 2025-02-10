@@ -28,7 +28,10 @@ impl TMarketKlineDataRepo for BinanceMarketKlineDataRepo {
 
         let req_url = format!(
             "{}/klines?symbol={}&interval={}&limit={}",
-            BINANCE_URL, market.id.to_uppercase(), interval_key, market.limit
+            BINANCE_URL,
+            market.id.to_uppercase(),
+            interval_key,
+            market.limit
         );
         let result = self.client.get(&req_url).send().await.unwrap();
 
@@ -57,8 +60,14 @@ impl TMarketKlineDataRepo for BinanceMarketKlineDataRepo {
         }
 
         let json_value: Value = result.json::<Value>().await.unwrap();
-        let price: f64 = json_value.get("price").unwrap().as_str().unwrap().parse().unwrap();
-        
+        let price: f64 = json_value
+            .get("price")
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .parse()
+            .unwrap();
+
         Ok(price)
     }
 }

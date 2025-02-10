@@ -1,8 +1,11 @@
-use std::process::ExitCode;
+use crate::commands::{
+    config::ConfigCmd, entry::EntryCmd, error::CliError, indicators::IndicatorsCmd,
+    sentiment::SentimentCmd,
+};
 use async_trait::async_trait;
 use clap::{Parser, Subcommand};
 use console::style;
-use crate::commands::{config::ConfigCmd, entry::EntryCmd, error::CliError, indicators::IndicatorsCmd, sentiment::SentimentCmd};
+use std::process::ExitCode;
 
 #[async_trait]
 pub trait RunCommand {
@@ -25,7 +28,7 @@ pub enum Commands {
     /// Calculate entry
     Entry(EntryCmd),
     /// Explain indicators
-    Indicators(IndicatorsCmd)
+    Indicators(IndicatorsCmd),
 }
 
 impl Cli {
@@ -34,7 +37,7 @@ impl Cli {
             Commands::Sentiment(sentiment) => sentiment.run().await,
             Commands::Config(config) => config.run().await,
             Commands::Entry(entry) => entry.run().await,
-            Commands::Indicators(indicators) => indicators.run().await
+            Commands::Indicators(indicators) => indicators.run().await,
         };
 
         match output {

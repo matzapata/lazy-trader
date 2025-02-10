@@ -27,4 +27,3 @@ impl RunCommand for IndicatorsCmd {
         Ok(())
     }
 }
-

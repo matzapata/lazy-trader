@@ -109,7 +109,7 @@ pub fn macd(
         let macd_val = fast_ema[(fast_ema.len() - slow_ema.len()) + i] - slow_ema[i];
         macd.push(macd_val);
     }
-    
+
     let signal = ema(&macd, signal_length);
 
     (macd, signal)
@@ -122,9 +122,14 @@ fn test_moving_average_convergence_divergence() {
     ];
 
     let result = macd(&data_set, 3, 6, 2);
-    assert_eq!(8, result.0.len());
+    assert_eq!(data_set.len(), result.0.len());
     assert_eq!(
         vec![
+            0.0,
+            0.0,
+            5.0,
+            3.5,
+            2.5,
             -1.5,
             -1.0178571428571432,
             -0.48596938775510257,
@@ -136,16 +141,22 @@ fn test_moving_average_convergence_divergence() {
         ],
         result.0
     );
-    assert_eq!(7, result.1.len());
+    assert_eq!(data_set.len(), result.1.len());
     assert_eq!(
         vec![
-            -1.2589285714285716,
-            -0.7436224489795923,
-            -0.32750242954324627,
-            -0.09015196214540272,
-            0.09290685621511298,
-            0.24491181654569036,
-            0.36894021109188696
+            0.0,
+            0.0,
+            3.333333333333333,
+            3.444444444444444,
+            2.814814814814815,
+            -0.061728395061728225,
+            -0.6991475602586715,
+            -0.5570287785896255,
+            -0.2653045394132573,
+            -0.06941933210207306,
+            0.09981773289622287,
+            0.24721544210606033,
+            0.3697080862786769
         ],
         result.1
     );

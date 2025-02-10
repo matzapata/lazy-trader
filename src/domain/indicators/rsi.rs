@@ -145,7 +145,7 @@ fn rsi(data_set: &Vec<f64>, window_size: usize) -> Vec<f64> {
         let rsi = 100.0 - 100.0 / (1.0 + current_average_gain / current_average_loss);
         result.push(rsi);
     }
-    
+
     result
 }
 

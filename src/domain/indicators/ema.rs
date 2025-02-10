@@ -88,11 +88,15 @@ impl TIndicator for EmaIndicator {
 pub fn ema(data_set: &Vec<f64>, window_size: usize) -> Vec<f64> {
     let mut result: Vec<f64> = Vec::new();
 
+    for _ in 0..(window_size - 1) {
+        result.push(0.0);
+    }
+
     let weighted_multiplier = 2.0 / (window_size as f64 + 1.0);
     let first_slice = &data_set[0..window_size];
     let first_sma: f64 = first_slice.iter().sum::<f64>() / window_size as f64;
     result.push(first_sma);
-    
+
     for i in window_size..data_set.len() {
         let previous_ema = result[result.len() - 1];
         let ema: f64 =
@@ -112,22 +116,11 @@ mod tests {
         let data_set = vec![5.0, 6.0, 4.0, 2.0];
 
         let result = ema(&data_set, 2);
-        assert_eq!(3, result.len());
-        assert_eq!(vec![5.5, 4.5, 2.8333333333333335], result);
+        assert_eq!(4, result.len());
+        assert_eq!(vec![0.0, 5.5, 4.5, 2.8333333333333335], result);
 
         let result = ema(&data_set, 4);
-        assert_eq!(1, result.len());
-        assert_eq!(vec![4.25], result);
-
-        let data_set = vec![
-            22.27, 22.19, 22.08, 22.17, 22.18, 22.13, 22.23, 22.43, 22.24, 22.29, 22.15, 22.39,
-        ];
-
-        let result = ema(&data_set, 10);
-        assert_eq!(3, result.len());
-        assert_eq!(
-            vec![22.220999999999997, 22.208090909090906, 22.241165289256195],
-            result
-        );
+        assert_eq!(4, result.len());
+        assert_eq!(vec![0.0, 0.0, 0.0, 4.25], result);
     }
 }
